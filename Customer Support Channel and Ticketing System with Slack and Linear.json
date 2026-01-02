@@ -1,0 +1,492 @@
+{
+  "name": "Customer Support Channel and Ticketing System with Slack and Linear",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "search",
+        "query": "in:#n8n-tickets has::ticket:",
+        "limit": 10,
+        "options": {}
+      },
+      "id": "c1b79bf5-dc16-4f53-8de4-ee14bc4fe38e",
+      "name": "Slack",
+      "type": "n8n-nodes-base.slack",
+      "position": [
+        -1184,
+        544
+      ],
+      "typeVersion": 2.2,
+      "webhookId": "cc9f931f-5fa7-4813-8ee8-1a250b25121f"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "175e5508-e492-401e-8cbe-3834335f7e47",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -80,
+        688
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsonSchema": "{\n \"type\": \"object\",\n \"properties\": {\n \"title\": { \"type\": \"string\" },\n \"summary\": { \"type\": \"string\" },\n \"ideas\": {\n \"type\": \"array\",\n \"items\": { \"type\": \"string\" }\n },\n \"priority\": { \"type\": \"string\" }\n }\n}"
+      },
+      "id": "f79f33ec-68e0-419d-9f84-239443cd014e",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        96,
+        688
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "25352ddb-81f4-49f8-b1f8-1ee65ef31326",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -1376,
+        544
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "content": "## 1. Query Slack for Messages \n[Read more about the Slack Trigger](https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.slack)\n\nSlack API search uses the same search syntax found in the app. Here, we'll use it to filter the latest messages with the ticket emoji within our designated channel called #n8n-tickets. ",
+        "height": 427.09547550768553,
+        "width": 432.4578914269739,
+        "color": 7
+      },
+      "id": "a3980e74-7864-442f-8f0e-3d8845c2d99f",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1424,
+        336
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 2. Decide If We Need to Create a New Ticket \n[Read more about using Linear](https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.linear)\n\nFor generated issues, we add the message id to the description of the message so that we can check them at this point in the workflow to avoid duplicates.",
+        "height": 632.7258798316449,
+        "width": 711.6907825442045,
+        "color": 7
+      },
+      "id": "ae2c39f8-957b-43bb-9059-36b592c0c0f8",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -960,
+        400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n \"id\": \"#{{ $json.permalink.split('/').last() }}\",\n \"type\": \"{{ $json.type }}\",\n \"title\": \"__NOT_SET__\",\n \"channel\": \"{{ $json.channel.name }}\",\n \"user\": \"{{ $json.username }} ({{ $json.user }})\",\n \"ts\": \"{{ $json.ts }}\",\n \"permalink\": \"{{ $json.permalink }}\",\n \"message\": \"{{ $json.text.replaceAll('\"','\\\\\"').replaceAll('\\n', '\\\\n') }}\"\n}",
+        "options": {}
+      },
+      "id": "73c8edf5-9e45-4a2b-b918-bac222f8718d",
+      "name": "Get Values",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -912,
+        576
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c11109b6-ee45-4b52-adc3-4be5fe420202",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              },
+              "leftValue": "={{ Boolean(($json.hashes ?? []).includes($json.id)) }}",
+              "rightValue": "=false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f4487861-9df5-407f-8170-bb550b733609",
+      "name": "Create New Ticket?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -400,
+        576
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "## 3. Use AI to Generate Ticket Contents\n[Read more about using Basic LLM Chain](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.chainllm)\n\nFor this demo, we've instructed the AI to do the following:\n* Generate a descriptive title of the issue\n* Summarise the user message into an actionable request.\n* Determine a prority based on tone and context of the user message. \n* Can offer possible fixes through use of tools or RAG. (not implemented)\n",
+        "height": 578.3950618708791,
+        "width": 530.6864600881105,
+        "color": 7
+      },
+      "id": "5553f3ef-ed68-4f40-8e76-9ba7be975d04",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        288
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Try It Out!\n### This workflow does the following:\n* Monitors a Slack channel for new user messages asking for assistance\n* Only user messages which are tagged with the ticket(🎫) emoji are processed.\n* Linear is first checked to see if a ticket was created for the user message.\n* User messages are sent to ChatGPT to generate title, description and priority.\n* Support ticket is created in Linear.\n\n",
+        "height": 400.4748439127683,
+        "width": 359.6648027457353
+      },
+      "id": "3da666a6-1ebb-4aa1-83f3-6862ae8f942f",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1808,
+        336
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "getAll"
+      },
+      "id": "614e82d6-49d3-48d1-9b37-1531b25f9817",
+      "name": "Get Existing Issues",
+      "type": "n8n-nodes-base.linear",
+      "position": [
+        -752,
+        576
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The \"user issue\" is enclosed by 3 backticks:\n```\n{{ $('Get Values').item.json.message }}\n```\nYou will complete the following 4 tasks:\n1. Generate a title intended for a support ticket based on the user issue only. Be descriptive but use no more than 10 words.\n2. Summarise the user issue only by identifying the key expectations and steps that were taken to reach the conclusion.\n3. Offer at most 3 suggestions to debug or resolve the user issue only. ignore the previous issues for this task.\n4. Identify the urgency of the user issue only and denote the priority as one of \"low\", \"medium\", \"high\" or \"urgent\". If you cannot determine the urgency of the issue, then assign the \"low\" priority. Also consider that requests which require action either today or tomorrow should be prioritised as \"high\".",
+        "hasOutputParser": true
+      },
+      "id": "1294a03e-d5d4-4430-8570-3e413b3ad661",
+      "name": "Generate Ticket Using ChatGPT",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        -80,
+        528
+      ],
+      "typeVersion": 1.4
+    },
+    {
+      "parameters": {
+        "content": "## 4. Create New Ticket in Linear\n[Read more about using Linear](https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.linear)\n\nWith our ticket contents generated, we can now create our ticket in Linear for support to handle.\n",
+        "height": 352.3865785298774,
+        "width": 374.7406065828194,
+        "color": 7
+      },
+      "id": "8269c67d-cdcf-4af4-8baf-392ba8b8ec0b",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        336,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "teamId": "1c721608-321d-4132-ac32-6e92d04bb487",
+        "title": "={{ $json.output.title }}",
+        "additionalFields": {
+          "description": "=## {{ $json.output.summary }}\n\n### Suggestions\n{{ $json.output.ideas.map(idea => '* ' + idea).join('\\n') }}\n\n## Original Message\n{{ $('Get Values').item.json[\"user\"] }} asks:\n> {{ $('Get Values').item.json[\"message\"] }}\n\n### Metadata\nchannel: {{ $('Get Values').item.json.channel }}\nts: {{ $('Get Values').item.json.ts }}\npermalink: {{ $('Get Values').item.json.permalink }}\nhash: {{ $('Get Values').item.json.id }}\n",
+          "priorityId": "={{ { 'urgent': 1, 'high': 2, 'medium': 3, 'low': 4 }[$json.output.priority.toLowerCase()] ?? 0 }}",
+          "stateId": "92962324-3d1f-4cf8-993b-0c982cc95245"
+        }
+      },
+      "id": "e4ff58d4-d48c-43f0-8d77-a42d3118cb9e",
+      "name": "Create Ticket",
+      "type": "n8n-nodes-base.linear",
+      "position": [
+        480,
+        592
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "0d76a600-dafc-4858-bc12-9daa8307b7a8",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -560,
+        576
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9b0e8527-ea17-4b1e-ba62-287111f4b37e",
+              "name": "hashes",
+              "type": "array",
+              "value": "={{ $json.descriptions.map(desc => desc.match(/hash\\:\\s([\\w#]+)/i)[1]) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7944fabf-0bb1-4697-be7e-528d73f0c5c7",
+      "name": "Get Hashes Only",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -752,
+        848
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "description",
+              "renameField": true,
+              "outputFieldName": "descriptions"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5302bafd-d9ef-403d-ac5f-8f761e9544c2",
+      "name": "Collect Descriptions",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        -752,
+        720
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n🚨**Required**\n* Set the Slack channel to monitor here.",
+        "height": 296.735132421306,
+        "width": 204.96868508214473
+      },
+      "id": "02725f0d-7065-44db-b0ff-fa6681dddd13",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1232,
+        512
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n🚨**Required**\n* Set the Linear Team Name or ID here.",
+        "height": 296.735132421306,
+        "width": 183.49787916474958
+      },
+      "id": "f03558ae-26b4-4cf1-a9b3-1c59d614b1bc",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        448,
+        576
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create New Ticket?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack": {
+      "main": [
+        [
+          {
+            "node": "Get Values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Values": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Existing Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Hashes Only": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Ticket Using ChatGPT",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Ticket?": {
+      "main": [
+        [
+          {
+            "node": "Generate Ticket Using ChatGPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Issues": {
+      "main": [
+        [
+          {
+            "node": "Collect Descriptions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Descriptions": {
+      "main": [
+        [
+          {
+            "node": "Get Hashes Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Ticket Using ChatGPT",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Ticket Using ChatGPT": {
+      "main": [
+        [
+          {
+            "node": "Create Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d81eb553-3d1e-4066-ab07-0202ffa99c4b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc5b3378594a2acdd86cea3d344e4daab4875f48262c9cc47e3a54e3b464220"
+  },
+  "id": "H5xo8JQSnkKlRADl",
+  "tags": [
+    {
+      "name": "marketing",
+      "id": "pgdZxQku6cXH3yWC",
+      "updatedAt": "2025-11-30T06:15:47.747Z",
+      "createdAt": "2025-11-30T06:15:47.747Z"
+    },
+    {
+      "name": "Google Drive",
+      "id": "W3TYCEapiw9idhxP",
+      "updatedAt": "2025-11-30T06:22:17.259Z",
+      "createdAt": "2025-11-30T06:22:17.259Z"
+    },
+    {
+      "name": "OpenAI",
+      "id": "IDs1YkEyqRuTzWT3",
+      "updatedAt": "2025-11-30T06:22:17.231Z",
+      "createdAt": "2025-11-30T06:22:17.231Z"
+    }
+  ]
+}

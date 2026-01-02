@@ -1,0 +1,523 @@
+{
+  "name": "AI Agent for project management and meetings with Airtable and Fireflies",
+  "nodes": [
+    {
+      "parameters": {
+        "agent": "openAiFunctionsAgent",
+        "promptType": "define",
+        "text": "=Title: {{ $json.data.transcript.title }}\n\nParticipants: {{ $json.data.transcript.participants }}\n\nTranscript: {{ JSON.stringify($json.data.transcript.sentences) }}\n\nBullet gist:{{ $json.data.transcript.summary.bullet_gist }}",
+        "options": {
+          "systemMessage": "=You get my calls' transcripts from Firefiles.\nThere can be meetings about projects. You can understand if it's about a project if meeting's title contains \"project\". If so - you need to:\n1. Analyze transcript, use tool \"Create Tasks\" to create tasks for me in my AirTable base.\n2. You need to use tool \"Notify Client About Tasks\" to nofity client about his tasks.\n3. If transcript contains info there's a call needed - you'll use \"Create Event\" tool to create call on Google Meet\nCurrent date: {{ $now }}"
+        }
+      },
+      "id": "495fd17e-2a87-4dfc-8cc8-f81e7f6bab07",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1568,
+        400
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {}
+      },
+      "id": "76d3f5b8-602d-405e-87b3-8fdc58a1c1c6",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1552,
+        688
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "name": "create_task",
+        "description": "=Use this tool to create a task. \nFor task creation use only action items for me [YOUR NAME HERE], don't use action items for other participants.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Jo0BiizccacaChkH",
+          "cachedResultName": "Firefiles AI Agent"
+        },
+        "specifyInputSchema": true,
+        "schemaType": "manual",
+        "inputSchema": "{\n \"type\": \"object\",\n \"properties\": {\n \"items\": {\n \"type\": \"array\",\n \"description\": \"An array of tasks\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"name\": {\n \"type\": \"string\",\n \"description\": \"The name of the task\"\n },\n \"description\": {\n \"type\": \"string\",\n \"description\": \"A detailed description of the task\"\n },\n \"due_date\": {\n \"type\": \"string\",\n \"description\": \"Due Date\"\n },\n \"priority\": {\n \"type\": \"string\",\n \"description\": \"Priority. . Please capitalize first letter\"\n },\n \"project_name\": {\n \"type\": \"string\",\n \"description\": \"Name of the project. Word 'Project' shouldn't be included\"\n }\n },\n \"required\": [\n \"name\",\n \"description\",\n \"due_date\",\n \"priority\"\n ],\n \"additionalProperties\": false\n }\n }\n },\n \"required\": [\n \"items\"\n ],\n \"additionalProperties\": false\n}"
+      },
+      "id": "15197207-5a7b-4ec8-bd49-51fbdc74bc51",
+      "name": "Create Tasks",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        1712,
+        688
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Use the tool to notify a participant of the meeting with meeting summary and his tasks.\nIMPORTANT: \n1. Please notify participants except for me. My email: [YOUR EMAIL HERE]\n2. When working with tasks - please send only the participant's tasks.",
+        "sendTo": "={{ $fromAI(\"participant_email\",\"participant email \",\"string\") }}",
+        "subject": "Meeting Summary",
+        "emailType": "text",
+        "message": "=Summary:\n{{ $json.data.transcript.summary.bullet_gist }}\n\nAction Items:\n{{ $fromAI(\"participant_action_items\",\"participant action items \",\"string\") }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "1c77b36a-d30a-418d-8e7f-920f2413d9c2",
+      "name": "Notify Client About Tasks",
+      "type": "n8n-nodes-base.gmailTool",
+      "position": [
+        1856,
+        688
+      ],
+      "webhookId": "519d9406-10ef-4ae1-a747-d278002cac9e",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {},
+      "id": "f0c599bb-ddca-4ad9-83e2-b19fc427c08a",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        1136,
+        1056
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "query.items",
+        "options": {}
+      },
+      "id": "3c19ab46-35f3-4911-b7de-51f5a3985053",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        1344,
+        1056
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "mode": "list",
+          "value": "appndgSF4faN4jPXi",
+          "cachedResultUrl": "https://airtable.com/appndgSF4faN4jPXi",
+          "cachedResultName": "Philipp's Base"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "list",
+          "value": "tblaCSndQsSF3gq7Z",
+          "cachedResultUrl": "https://airtable.com/appndgSF4faN4jPXi/tblaCSndQsSF3gq7Z",
+          "cachedResultName": "Tasks"
+        },
+        "columns": {
+          "value": {
+            "Name": "={{ $json.name }}",
+            "Project": "={{ [$json.project_name] }}",
+            "Due Date": "={{ $json.due_date }}",
+            "Priority": "={{ $json.priority }}",
+            "Description": "={{ $json.description }}"
+          },
+          "schema": [
+            {
+              "id": "Name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "Name",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Description",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "Description",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "type": "options",
+              "display": true,
+              "options": [
+                {
+                  "name": "Low",
+                  "value": "Low"
+                },
+                {
+                  "name": "Medium",
+                  "value": "Medium"
+                },
+                {
+                  "name": "Urgent",
+                  "value": "Urgent"
+                },
+                {
+                  "name": "low",
+                  "value": "low"
+                },
+                {
+                  "name": "medium",
+                  "value": "medium"
+                },
+                {
+                  "name": "urgent",
+                  "value": "urgent"
+                }
+              ],
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "Priority",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Due Date",
+              "type": "dateTime",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "Due Date",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Project",
+              "type": "array",
+              "display": true,
+              "removed": false,
+              "readOnly": false,
+              "required": false,
+              "displayName": "Project",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "7a35b915-dcc9-4333-b79b-38165ad10650",
+      "name": "Create Task",
+      "type": "n8n-nodes-base.airtable",
+      "position": [
+        1568,
+        1056
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Use tool to create Google Calendar Event. Use this tool only when transcript contains information that call should be scheduled.",
+        "calendar": {
+          "__rl": true,
+          "mode": "list",
+          "value": "philipp@lowcoding.dev",
+          "cachedResultName": "philipp@lowcoding.dev"
+        },
+        "start": "={{ $fromAI(\"start_date_time\",\"Date and time of meeting start\",\"string\") }}",
+        "end": "={{ $fromAI(\"end_date_time\",\"Date and time of meeting end\",\"string\") }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ $fromAI(\"email\",\"client email\",\"string\") }}"
+          ],
+          "conferenceDataUi": {
+            "conferenceDataValues": {
+              "conferenceSolution": "hangoutsMeet"
+            }
+          },
+          "summary": "={{ $fromAI(\"meeting_name\",\"Meeting name\",\"string\") }}"
+        }
+      },
+      "id": "7db1b7e1-6154-4c51-bcea-2f6af5ad52fa",
+      "name": "Create Event",
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "position": [
+        2016,
+        688
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "df852a9f-5ea3-43f2-bd49-d045aba5e9c9",
+        "options": {}
+      },
+      "id": "429f88ca-fa9b-4105-8f25-8b2359e9dfdf",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        1152,
+        400
+      ],
+      "webhookId": "df852a9f-5ea3-43f2-bd49-d045aba5e9c9",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.fireflies.ai/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer [YOUR API KEY HERE]"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"query\": \"query Transcript($transcriptId: String!) { transcript(id: $transcriptId) { title participants speakers { id name } sentences { speaker_name text } summary { bullet_gist } } }\",\n \"variables\": {\n \"transcriptId\": \"{{ $json.meetingId }}\"\n }\n}",
+        "options": {}
+      },
+      "id": "ab14dfbb-20e1-43cd-93a6-17818bb787b8",
+      "name": "Get Meeting Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1376,
+        400
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "content": "### Replace API key for Fireflies\n",
+        "height": 80,
+        "color": 4
+      },
+      "id": "6f7e566e-0a3a-47d7-91eb-e25992776cc2",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1296,
+        288
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Replace connections for Airtable and Google\n",
+        "height": 80,
+        "color": 4
+      },
+      "id": "aed8c615-3f2f-4572-b57e-fee4868c2c08",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1856,
+        848
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Scenario 2 - Create Tasks tool",
+        "height": 280,
+        "width": 820
+      },
+      "id": "add114e6-3480-47ea-9be3-0a7be252e0aa",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        976
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Scenario 1 - AI agent",
+        "height": 760,
+        "width": 1100
+      },
+      "id": "798809ea-9577-4a05-be24-b744c0b03a8d",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        176
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Replace OpenAI connection\n",
+        "height": 80,
+        "color": 4
+      },
+      "id": "61289118-1911-4c17-b6d2-6cf6177f98f3",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1472,
+        816
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Set up steps\n\n#### Preparation\n1. **Create Accounts**:\n - [N8N](https://n8n.partnerlinks.io/2hr10zpkki6a): For workflow automation.\n - [Airtable](https://airtable.com/): For database hosting and management.\n - [Fireflies](https://fireflies.ai/): For recording meetings.\n\n#### N8N Workflow\n\n1. **Configure the Webhook**: \n - Set up a webhook to capture meeting completion events and integrate it with Fireflies.\n\n2. **Retrieve Meeting Content**: \n - Use GraphQL API requests to extract meeting details and transcripts, ensuring appropriate authentication through Bearer tokens.\n\n3. **AI Processing Setup**: \n - Define system messages for AI tasks and configure connections to the AI chat model (e.g., OpenAI's GPT) to process transcripts.\n\n4. **Task Creation Logic**: \n - Create structured tasks based on AI output, ensuring necessary details are captured and records are created in Airtable.\n\n5. **Client Notifications**: \n - Use an email node to notify clients about their tasks, ensuring communications are client-specific.\n\n6. **Scheduling Follow-Up Calls**: \n - Set up Google Calendar events if follow-up meetings are required, populating details from the original meeting context.\n\n7. **Final Testing**: \n - Conduct tests to ensure each part of the workflow is functional and seamless, making adjustments as needed based on feedback.",
+        "height": 566,
+        "width": 280,
+        "color": 7
+      },
+      "id": "660704c3-a0ca-4ee5-bdb3-a1322c17abb3",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        304,
+        704
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent for project management and meetings with Airtable and Fireflies\n\n\nManaging action items from meetings can often lead to missed tasks and poor follow-up. This automation alleviates that issue by automatically generating tasks from meeting transcripts, keeping everyone informed about their responsibilities and streamlining communication.\n\nThe workflow leverages n8n to create a Smart Agent that listens for completed meeting transcripts, processes them using AI, and generates tasks in Airtable. Key functionalities include:\n- Capturing completed meeting events through webhooks.\n- Extracting relevant meeting details such as transcripts and participants using API calls.\n- Generating structured tasks from meeting discussions and sending notifications to clients.\n\n",
+        "height": 497.1532689930921,
+        "width": 636.2128494576581,
+        "color": 7
+      },
+      "id": "96ace35d-4f92-4461-8ab2-2165080379d9",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        304,
+        176
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Meeting Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Create Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Meeting Content": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Client About Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dcc8a269-da00-433e-8234-2860c147ce25",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc5b3378594a2acdd86cea3d344e4daab4875f48262c9cc47e3a54e3b464220"
+  },
+  "id": "lpQmOb4h7r1tgmjg",
+  "tags": [
+    {
+      "name": "AI",
+      "id": "OyDyfk4weQYK0qRP",
+      "updatedAt": "2025-11-29T09:45:42.981Z",
+      "createdAt": "2025-11-29T09:45:42.981Z"
+    }
+  ]
+}

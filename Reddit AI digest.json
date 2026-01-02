@@ -1,0 +1,534 @@
+{
+  "name": "Reddit AI digest",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9a415d31-902b-4a26-976c-eae03c9135d8",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -3184,
+        -128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "location": "allReddit",
+        "keyword": "n8n",
+        "additionalFields": {
+          "sort": "new"
+        }
+      },
+      "id": "7a6567b3-8cfc-4b86-a52b-f3bebd86b372",
+      "name": "Reddit",
+      "type": "n8n-nodes-base.reddit",
+      "position": [
+        -2992,
+        -128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## What this workflow does\n✔︎ 1) Get posts from reddit that might be about n8n\n - Filter for the most relevant posts (posted in last 7 days and more than 5 upvotes and is original content)\n\n✔︎ 2) Check if the post is actually about n8n\n\n✔︎ 3) if it is, categorise with OpenAi.\n",
+        "height": 210.99380804953552,
+        "width": 507.1052631578949
+      },
+      "id": "4d0736cb-81ff-4162-9639-8a873fb5ccf5",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3744,
+        -272
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "number": [
+            {
+              "name": "upvotes",
+              "value": "={{ $json.ups }}"
+            },
+            {
+              "name": "subredditSize",
+              "value": "={{ $json.subreddit_subscribers }}"
+            }
+          ],
+          "string": [
+            {
+              "name": "selftextTrimmed",
+              "value": "={{ $json.selftext.substring(0,500) }}"
+            },
+            {
+              "name": "subreddit",
+              "value": "={{ $json.subreddit }}"
+            },
+            {
+              "name": "date",
+              "value": "={{ DateTime.fromSeconds($json.created).toLocaleString() }}"
+            },
+            {
+              "name": "url",
+              "value": "={{ $json.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "05f60d36-737e-4952-86f2-15c2e5adbe52",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -2608,
+        -128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.ups }}",
+              "operation": "largerEqual",
+              "value2": "=5"
+            }
+          ],
+          "string": [
+            {
+              "value1": "={{ $json.selftext }}",
+              "operation": "isNotEmpty"
+            }
+          ],
+          "dateTime": [
+            {
+              "value1": "={{ DateTime.fromSeconds($json.created).toISO() }}",
+              "value2": "={{ $today.minus({days: 7}).toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "6107e935-48b6-420d-9155-a365191afe94",
+      "name": "IF",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -2800,
+        -128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Drawbacks\n🤔 Workflow only considers first 500 characters of each reddit post. So if n8n is mentioned after this amount, it won't register as being a post about n8n.io.",
+        "height": 116.77974205725066,
+        "width": 504.4736842105267
+      },
+      "id": "7a3db26b-1ed3-4e87-a6f8-c0dbebf3e20d",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3744,
+        224
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.choices[0].text }}",
+              "operation": "contains",
+              "value2": "No"
+            }
+          ]
+        }
+      },
+      "id": "327fd8b7-f415-4565-8c48-26f0004601ac",
+      "name": "IF1",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1984,
+        -112
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {
+          "fuzzyCompare": false,
+          "includeUnpaired": true
+        }
+      },
+      "id": "e28e9bab-ce47-4c1e-aae9-32dddb4248dd",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -2192,
+        80
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {
+          "fuzzyCompare": false,
+          "includeUnpaired": true
+        }
+      },
+      "id": "cb5ac895-033c-4269-8f6e-e6e32afd8e2d",
+      "name": "Merge1",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        -1520,
+        96
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "number": [
+            {
+              "name": "upvotes",
+              "value": "={{ $json.upvotes }}"
+            },
+            {
+              "name": "subredditSize",
+              "value": "={{ $json.subredditSize }}"
+            }
+          ],
+          "string": [
+            {
+              "name": "subreddit",
+              "value": "={{ $json.subreddit }}"
+            },
+            {
+              "name": "bulletSummary",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "date",
+              "value": "={{ $json.date }}"
+            },
+            {
+              "name": "url",
+              "value": "={{ $json.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "59d1dd2c-0cd3-4431-9b72-90507be8b0b4",
+      "name": "SetFinal",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1312,
+        96
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Next steps\n* Improve OpenAI Summary node prompt to return cleaner summaries.\n* Extend to **more platforms/sources** - e.g. it would be really cool to monitor larger slack communities in this way. \n* Do some classification on type of user to highlight users likely to be in our **ICP**.\n* Separate a list of data sources (reddit, twitter, slack, discord etc.), extract messages from there and have them go to a **sub workflow for classification and summarisation.**",
+        "height": 247.53869969040255,
+        "width": 507.1052631578949
+      },
+      "id": "0fec1966-432a-4dc2-96d0-4853ddec31ca",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3744,
+        -48
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "edit",
+        "input": "={{ $json.selftextTrimmed }}",
+        "instruction": "Summarise what this is talking about in a meta way less than 20 words. Ignore punctuation in your summary and return a short, human readable summary.",
+        "options": {
+          "temperature": 0.3
+        },
+        "requestOptions": {}
+      },
+      "id": "a4bc6fd7-3aea-4aa4-8dfb-16d1db3c1a77",
+      "name": "OpenAI Summary",
+      "type": "n8n-nodes-base.openAi",
+      "position": [
+        -1712,
+        -288
+      ],
+      "typeVersion": 1,
+      "disabled": true,
+      "notes": "A one sentence summary of what the post is about."
+    },
+    {
+      "parameters": {
+        "prompt": "=Decide whether a reddit post is about n8n.io, a workflow automation low code tool that can be self-hosted, or not.\nReddit Post: {{ $json.selftextTrimmed }}\nAbout n8n?: Yes/No",
+        "simplifyOutput": false,
+        "options": {
+          "maxTokens": 32
+        },
+        "requestOptions": {}
+      },
+      "id": "f8b72431-7774-4c72-99cd-25b73b2d9c6e",
+      "name": "OpenAI Classify",
+      "type": "n8n-nodes-base.openAi",
+      "position": [
+        -2400,
+        -128
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "notes": "Is the post about n8n?"
+    },
+    {
+      "parameters": {
+        "prompt": "=Summarise what this is talking about in a meta way in only 1 sentence.\n\n {{ $json.selftextTrimmed }}",
+        "options": {
+          "maxTokens": 128
+        },
+        "requestOptions": {}
+      },
+      "id": "a6d061e4-60b4-45c4-ada5-1352feee2529",
+      "name": "OpenAI Summary Backup",
+      "type": "n8n-nodes-base.openAi",
+      "position": [
+        -1712,
+        -112
+      ],
+      "typeVersion": 1,
+      "notes": "A one sentence summary of what the post is about."
+    },
+    {
+      "parameters": {
+        "content": "## What we learned\n- 🪶 **Writing prompts**: small changes in the type of prompt result in very different results. e.g. for Summarising OpenAI would use multiple sentences even if we asked it to use only 1. We got better results by following OpenAI's documentation.\n\n- ↕️ **Changing the max_tokens parameter** drastically changes results - sometimes making it smaller even improves results (e.g. when you want a yes/no response in the OpenAI Classify node). In their [docs](https://platform.openai.com/docs/guides/completion/inserting-text) they recommend using max_tokens>256 but [n8n by default](https://community.n8n.io/t/openai-result-not-complete/21533) uses max_tokens=16. We should probably update this.",
+        "height": 258.676790119369,
+        "width": 843.411496498402
+      },
+      "id": "0c4935b3-0402-40d2-9bce-3b38107e1f6c",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3232,
+        80
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "OpenAI Summary Backup",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Classify",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "IF1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "SetFinal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reddit": {
+      "main": [
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Classify": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Summary Backup": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Reddit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "55cf24fa-bb62-498d-b025-0a63f6bd92c9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc5b3378594a2acdd86cea3d344e4daab4875f48262c9cc47e3a54e3b464220"
+  },
+  "id": "H5xo8JQSnkKlRADl",
+  "tags": [
+    {
+      "updatedAt": "2025-11-30T06:46:08.549Z",
+      "createdAt": "2025-11-30T06:46:08.549Z",
+      "id": "6iLB33WeG2YbfTJ3",
+      "name": "DevOps"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.615Z",
+      "createdAt": "2025-11-30T06:46:08.615Z",
+      "id": "6op0zL77FeuaPqWj",
+      "name": "Support"
+    },
+    {
+      "updatedAt": "2025-11-30T06:22:17.231Z",
+      "createdAt": "2025-11-30T06:22:17.231Z",
+      "id": "IDs1YkEyqRuTzWT3",
+      "name": "OpenAI"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.471Z",
+      "createdAt": "2025-11-30T06:46:08.471Z",
+      "id": "Igi35IvFAUpecKCl",
+      "name": "IT Ops"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.442Z",
+      "createdAt": "2025-11-30T06:46:08.442Z",
+      "id": "IhvL3iSTIjSMQjuQ",
+      "name": "Building blocks"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.502Z",
+      "createdAt": "2025-11-30T06:46:08.502Z",
+      "id": "MQFOUh5oGInbQ8Wk",
+      "name": "Finance"
+    },
+    {
+      "updatedAt": "2025-11-29T09:45:42.981Z",
+      "createdAt": "2025-11-29T09:45:42.981Z",
+      "id": "OyDyfk4weQYK0qRP",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2025-11-30T06:22:17.259Z",
+      "createdAt": "2025-11-30T06:22:17.259Z",
+      "id": "W3TYCEapiw9idhxP",
+      "name": "Google Drive"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.595Z",
+      "createdAt": "2025-11-30T06:46:08.595Z",
+      "id": "hcHI7CXwHQX3oEGx",
+      "name": "Marketing"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.530Z",
+      "createdAt": "2025-11-30T06:46:08.530Z",
+      "id": "mYSfABPli1VS9HRW",
+      "name": "Product"
+    },
+    {
+      "updatedAt": "2025-11-30T06:15:47.747Z",
+      "createdAt": "2025-11-30T06:15:47.747Z",
+      "id": "pgdZxQku6cXH3yWC",
+      "name": "marketing"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.569Z",
+      "createdAt": "2025-11-30T06:46:08.569Z",
+      "id": "wLQJJ0Kj2fLawvaj",
+      "name": "HR"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.634Z",
+      "createdAt": "2025-11-30T06:46:08.634Z",
+      "id": "yNq5jRRGyXUpeeiw",
+      "name": "Project Management"
+    }
+  ]
+}

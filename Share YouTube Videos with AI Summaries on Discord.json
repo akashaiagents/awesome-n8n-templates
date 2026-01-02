@@ -1,0 +1,324 @@
+{
+  "name": "Share YouTube Videos with AI Summaries on Discord",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "feedUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UC08Fah8EIryeOZRkjBRohcQ"
+      },
+      "id": "f3ac44b6-7ad9-4bfe-9126-0fea7c2245c3",
+      "name": "YouTube Video Trigger",
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "position": [
+        -480,
+        320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/captions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "videoId",
+              "value": "={{ $json.id.match(/(?:[^:]*:){2}\\s*(.*)/)[1] }}"
+            },
+            {
+              "name": "part",
+              "value": "snippet"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e4e10e8c-d8eb-4e37-a1f8-f99e9d639be3",
+      "name": "Retrieve Caption Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -272,
+        320
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/captions/{{ $json.caption.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "options": {}
+      },
+      "id": "564befe0-34e6-418a-92f7-44f840fd442d",
+      "name": "Download Captions",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        176,
+        320
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "content",
+        "options": {}
+      },
+      "id": "f73768bb-b20b-4be3-a700-7291081e993e",
+      "name": "Caption File Conversion",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        400,
+        320
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-3.5-turbo",
+          "cachedResultName": "GPT-3.5-TURBO"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarise this transcript into three bullet points to sum up what the video is about and why someone should watch it: {{ $json[\"content\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fa59aa20-8f32-416b-8e0f-ccbc9be61954",
+      "name": "Caption Summary with ChatGPT",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        624,
+        320
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=🌟 New Video Alert! 🌟\n\n**{{ $('YouTube Video Trigger').item.json[\"title\"] }}**\n\n*What’s it about?*\n\n{{ $json[\"message\"][\"content\"] }}\n\n[Watch NOW]({{ $('YouTube Video Trigger').item.json[\"link\"] }}) and remember to share your thoughts!",
+        "options": {}
+      },
+      "id": "1e517aae-4b04-4fb9-804d-3d7ec08eca48",
+      "name": "Post to Discord",
+      "type": "n8n-nodes-base.discord",
+      "position": [
+        960,
+        320
+      ],
+      "typeVersion": 2,
+      "webhookId": "025355f1-885a-423a-837c-ce4d9bb5fcc4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eaf7dcb5-91cf-4405-917b-38845f0ef78d",
+              "name": "caption",
+              "type": "object",
+              "value": "={{ $jmespath( $json.items, \"[?snippet.language == 'en'] | [0]\" ) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a93f79cd-fb4f-4d3f-99f1-088815e8ee8b",
+      "name": "Find English Captions",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -48,
+        320
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "content": "### Summarise Your YouTube Videos with AI for Discord\n\n\n* Add your [YouTube channel ID](https://www.youtube.com/account_advanced) to the URL in the first node: `https://www.youtube.com/feeds/videos.xml?channel_id=YOUR_CHANNEL_ID`.\n\n* Ensure authorization with the YouTube channel that you want to download captions from.",
+        "height": 417.2722371967648,
+        "width": 448.11859838274916
+      },
+      "id": "663e1f66-8f79-4337-a048-1a68786b4639",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -544,
+        80
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download Captions": {
+      "main": [
+        [
+          {
+            "node": "Caption File Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find English Captions": {
+      "main": [
+        [
+          {
+            "node": "Download Captions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve Caption Data": {
+      "main": [
+        [
+          {
+            "node": "Find English Captions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Video Trigger": {
+      "main": [
+        [
+          {
+            "node": "Retrieve Caption Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Caption File Conversion": {
+      "main": [
+        [
+          {
+            "node": "Caption Summary with ChatGPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Caption Summary with ChatGPT": {
+      "main": [
+        [
+          {
+            "node": "Post to Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f8a3a583-fa5f-46e9-8423-d12d39001645",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc5b3378594a2acdd86cea3d344e4daab4875f48262c9cc47e3a54e3b464220"
+  },
+  "id": "H5xo8JQSnkKlRADl",
+  "tags": [
+    {
+      "updatedAt": "2025-11-30T06:46:08.549Z",
+      "createdAt": "2025-11-30T06:46:08.549Z",
+      "id": "6iLB33WeG2YbfTJ3",
+      "name": "DevOps"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.615Z",
+      "createdAt": "2025-11-30T06:46:08.615Z",
+      "id": "6op0zL77FeuaPqWj",
+      "name": "Support"
+    },
+    {
+      "updatedAt": "2025-11-30T06:22:17.231Z",
+      "createdAt": "2025-11-30T06:22:17.231Z",
+      "id": "IDs1YkEyqRuTzWT3",
+      "name": "OpenAI"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.471Z",
+      "createdAt": "2025-11-30T06:46:08.471Z",
+      "id": "Igi35IvFAUpecKCl",
+      "name": "IT Ops"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.442Z",
+      "createdAt": "2025-11-30T06:46:08.442Z",
+      "id": "IhvL3iSTIjSMQjuQ",
+      "name": "Building blocks"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.502Z",
+      "createdAt": "2025-11-30T06:46:08.502Z",
+      "id": "MQFOUh5oGInbQ8Wk",
+      "name": "Finance"
+    },
+    {
+      "updatedAt": "2025-11-29T09:45:42.981Z",
+      "createdAt": "2025-11-29T09:45:42.981Z",
+      "id": "OyDyfk4weQYK0qRP",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2025-11-30T06:22:17.259Z",
+      "createdAt": "2025-11-30T06:22:17.259Z",
+      "id": "W3TYCEapiw9idhxP",
+      "name": "Google Drive"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.595Z",
+      "createdAt": "2025-11-30T06:46:08.595Z",
+      "id": "hcHI7CXwHQX3oEGx",
+      "name": "Marketing"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.530Z",
+      "createdAt": "2025-11-30T06:46:08.530Z",
+      "id": "mYSfABPli1VS9HRW",
+      "name": "Product"
+    },
+    {
+      "updatedAt": "2025-11-30T06:15:47.747Z",
+      "createdAt": "2025-11-30T06:15:47.747Z",
+      "id": "pgdZxQku6cXH3yWC",
+      "name": "marketing"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.569Z",
+      "createdAt": "2025-11-30T06:46:08.569Z",
+      "id": "wLQJJ0Kj2fLawvaj",
+      "name": "HR"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.634Z",
+      "createdAt": "2025-11-30T06:46:08.634Z",
+      "id": "yNq5jRRGyXUpeeiw",
+      "name": "Project Management"
+    }
+  ]
+}

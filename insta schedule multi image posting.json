@@ -1,0 +1,715 @@
+{
+  "name": "insta schedule multi image posting",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -496,
+        -16
+      ],
+      "id": "fdea8f97-e698-4c56-b19e-e40b00912f37",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "12d-CKSfTwocMQnC3bxF5VvgdIjfbD8OYkR-a9UeArro",
+          "mode": "list",
+          "cachedResultName": "telegram_bot",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12d-CKSfTwocMQnC3bxF5VvgdIjfbD8OYkR-a9UeArro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1928939856,
+          "mode": "list",
+          "cachedResultName": "multi image instagram post",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12d-CKSfTwocMQnC3bxF5VvgdIjfbD8OYkR-a9UeArro/edit#gid=1928939856"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Post Date",
+              "lookupValue": "={{ $now.format(\"dd-MM-yyyy\") }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Schedule"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        -16
+      ],
+      "id": "05222bb9-4be2-4e99-96bf-0882ff535901",
+      "name": "get image posting",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XAS95OdaeRKFTZtR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields').item.json.node }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $('Edit Fields').item.json.image_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields').item.json.caption }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -240
+      ],
+      "id": "08090322-108b-4863-acf8-cc9432e88ec3",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "12d-CKSfTwocMQnC3bxF5VvgdIjfbD8OYkR-a9UeArro",
+          "mode": "list",
+          "cachedResultName": "telegram_bot",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12d-CKSfTwocMQnC3bxF5VvgdIjfbD8OYkR-a9UeArro/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2057224378,
+          "mode": "list",
+          "cachedResultName": "instagram image posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12d-CKSfTwocMQnC3bxF5VvgdIjfbD8OYkR-a9UeArro/edit#gid=2057224378"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Published",
+            "ID": "={{ $('get image posting').item.json.ID }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Post Date",
+              "displayName": "Post Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption",
+              "displayName": "Caption",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Image Link",
+              "displayName": "Image Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -240
+      ],
+      "id": "cbf01752-4cc3-432a-8259-6ca8e3970a47",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XAS95OdaeRKFTZtR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      caption:$input.first().json.caption ,\n      images: [\n       $input.first().json[\"Image Link\"] ,\n       $input.first().json[\"Image Link 2\"] ,\n       $input.first().json[\"Image Link 3\"]\n      ].filter(img => img) // empty links remove\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        224
+      ],
+      "id": "96d9a19f-17a5-4ef3-8ee1-be36b76c797c",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const images = $input.first().json.images;\nreturn images.map(img => {\n  return {\n    json: {\n      image_url: img,\n      caption:$input.first().json.caption,\n     \n    }\n  }\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        224
+      ],
+      "id": "aca61630-8bfe-4d05-b7bc-525241386f95",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841404294248317",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "children",
+                "value": "={{ $json.id }},{{ $json.id }},{{ $json.id }}"
+              },
+              {
+                "name": "Caption",
+                "value": "={{ $('Code').item.json.caption }}"
+              },
+              {
+                "name": "media_type",
+                "value": "CAROUSEL"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        208
+      ],
+      "id": "56d7cb04-30f7-411c-8cc5-c486fe8ebf19",
+      "name": "Facebook Graph API2",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -48,
+        224
+      ],
+      "id": "aa1ee897-befd-4552-81e2-1748fd6720e0",
+      "name": "Loop Over Items",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "27f743e8-7fd9-497b-8ce4-edcaad86e5cd",
+              "name": "caption",
+              "value": "={{ $json.Caption }}",
+              "type": "string"
+            },
+            {
+              "id": "fcf6c80c-ac02-4968-baf2-8e105fccdf3c",
+              "name": "Image Link",
+              "value": "={{ $json['Image Link'] }}",
+              "type": "string"
+            },
+            {
+              "id": "dbdedea3-163d-4205-9af4-af828384912e",
+              "name": "Image Link 2",
+              "value": "={{ $json['Image Link 2'] }}",
+              "type": "string"
+            },
+            {
+              "id": "74603388-457b-4786-99e6-f7f14b2074d1",
+              "name": "Image Link 3",
+              "value": "={{ $json['Image Link 3'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -16
+      ],
+      "id": "b016cba5-cfdd-481b-b3c5-8728f9b6518c",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "869ecb0e-68dd-4110-a365-663190084d99",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "23c55a52-f3c8-4e48-87ec-2a62b612d4fe",
+              "name": "caption",
+              "value": "={{ $('Code1').item.json.caption }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        368
+      ],
+      "id": "4fc2196e-6a95-4c00-8f45-2d8ccab9b4ea",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $json.node }}",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $json.image_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.node }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        176,
+        -240
+      ],
+      "id": "c17f5aac-be7c-4639-80b4-14bb6be664d9",
+      "name": "Instagram Container ID",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d1d9523a-e21a-43a9-a04e-a24da359e651",
+              "name": "image_url",
+              "value": "={{ $json['Image Link'] }}",
+              "type": "string"
+            },
+            {
+              "id": "948ddd1a-ef3a-42f3-b9b7-ce461f39f8d5",
+              "name": "caption",
+              "value": "={{ $json.Caption }}",
+              "type": "string"
+            },
+            {
+              "id": "78e0a17e-8bbf-4cb0-892b-4e08671fd117",
+              "name": "node",
+              "value": "17841404294248317",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -240
+      ],
+      "id": "8fcdaee5-49d1-4734-bc94-490ee7996575",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841404294248317",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $json.image_url }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "17841404294248317"
+              },
+              {
+                "name": "is_carousel_item",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        432,
+        368
+      ],
+      "id": "d49ad1aa-c32e-4f3c-9207-d56c3299642a",
+      "name": "Container ID Generate",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst ids = items.map(item => item.json.id);\nconst captions = items.map(item => item.json.caption);\n\nreturn [\n  {\n    json: {\n      container_ids: ids,\n      caption:captions?.[0]\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        128
+      ],
+      "id": "a7f4fb4b-06a9-4663-9d5d-8c3003d4c576",
+      "name": "converting containers_ids"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841404294248317",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "children",
+                "value": "={{ $json.container_ids }}"
+              },
+              {
+                "name": "media_type",
+                "value": "CAROUSEL"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        432,
+        128
+      ],
+      "id": "22b8cc9f-1e90-4080-b7ec-537ed2c21a98",
+      "name": "creating common container",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "=17841404294248317",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        672,
+        128
+      ],
+      "id": "29d5d0c2-00fb-4f21-bd8d-0a47144884f8",
+      "name": "publish images to instagram",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "get image posting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get image posting": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "converting containers_ids",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Container ID Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Container ID": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Container ID Generate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "converting containers_ids": {
+      "main": [
+        [
+          {
+            "node": "creating common container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "creating common container": {
+      "main": [
+        [
+          {
+            "node": "publish images to instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "05d87d12-67a9-4b66-8f1d-d73844088d8f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6551187885deb0db02ceb1ce7755fc6db585e43c06220b370cd746fc9050b803"
+  },
+  "id": "rUlROgocltpybzM5",
+  "tags": []
+}

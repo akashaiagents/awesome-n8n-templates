@@ -1,0 +1,178 @@
+{
+  "name": "photo posting instagram",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0627faee-df82-497d-a81a-609979827cf1",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e66235e-34aa-48d6-92ad-db070b579036",
+              "name": "imageUrl",
+              "value": "https://nextfutureai.com/nodebackend/backend/uploads/images/image-1751810862039-ChatGPT-Image-Jul-6,-2025,-07_36_56-PM.JPEG",
+              "type": "string"
+            },
+            {
+              "id": "9b8c2036-cc4a-4f42-8c6e-b071d274e651",
+              "name": "captionText",
+              "value": "Good evening",
+              "type": "string"
+            },
+            {
+              "id": "452c5a50-5ec9-4268-b59d-9076c5081c1d",
+              "name": "node",
+              "value": "17841404294248317",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "acee01e4-5d40-4ddf-96bd-ef459001fed4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "=17841404294248317",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $json.imageUrl }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.captionText }}"
+              },
+              {
+                "name": "node",
+                "value": "={{ $json.node }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "c66698a5-a6a1-4cf0-ab78-fd7d187e4cfa",
+      "name": "Instagram Container ID",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $('Edit Fields').item.json.node }}",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $('Edit Fields').item.json.imageUrl }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Edit Fields').item.json.captionText }}"
+              },
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8bb2b9d7-fce9-4266-a82d-01766180a09e",
+      "name": "Facebook Graph API",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "PrVIyOV9XcuY8Iok",
+          "name": "Facebook Graph account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Instagram Container ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Container ID": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b6d36aa1-91e8-424c-b020-2a1bc4bf784d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6551187885deb0db02ceb1ce7755fc6db585e43c06220b370cd746fc9050b803"
+  },
+  "id": "GxF7X5IKvg8AeJpe",
+  "tags": []
+}

@@ -1,0 +1,140 @@
+{
+  "name": "calling flux image modal",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Welcome to the High-Quality Image Generator! 🎨\nSimply share a prompt, and I’ll create your image.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        -96
+      ],
+      "id": "a5bc2c7b-4c5c-417d-838e-b333278148e8",
+      "name": "When chat message received",
+      "webhookId": "f3b26e53-5621-45c7-88b8-63c9f4087fe7"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant, you have to intract with the user as image generator assitant , you have to take prompt from user to generate the image and you have to pass the prompt to image generator tool in prompt and it will give you a output.\ninstructions :\n1.link should be clickable and show full link so user can copy and click"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -144,
+        -80
+      ],
+      "id": "835197e9-d148-41cf-8de8-56ac51d8d1ed",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        96
+      ],
+      "id": "091f2f73-58fb-4b4f-9c24-12d8a3c30f92",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3QbXxcEqxgtkEltB",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "gLItzPvIroyfpge3",
+          "mode": "list",
+          "cachedResultName": "flux model"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [
+            "prompt"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        64,
+        112
+      ],
+      "id": "f13001c7-e929-407b-8ea1-5ff5e0539214",
+      "name": "Call n8n Workflow Tool"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call n8n Workflow Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dc97e81f-a6fa-471c-b0fd-c8551a8195c0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6551187885deb0db02ceb1ce7755fc6db585e43c06220b370cd746fc9050b803"
+  },
+  "id": "2K6Yum9XtBKEcc9S",
+  "tags": []
+}

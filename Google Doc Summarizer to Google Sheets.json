@@ -1,0 +1,394 @@
+{
+  "name": "Google Doc Summarizer to Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "get",
+        "documentURL": "={{ $json.id }}"
+      },
+      "id": "38fbe2df-8740-4f37-b4b0-5b08c1e85370",
+      "name": "Google Docs",
+      "type": "n8n-nodes-base.googleDocs",
+      "position": [
+        -528,
+        480
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {},
+      "id": "fa83856e-6b39-4868-967c-ed213a26e8df",
+      "name": "Wikipedia",
+      "type": "@n8n/n8n-nodes-langchain.toolWikipedia",
+      "position": [
+        -192,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "b1910df0-18bb-4b44-8084-4a8d20cda70e",
+      "name": "Calculator",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "position": [
+        80,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1s1v58pqGaVha9g_evNX4UEMchzteO7CyLNp87tcKJ1Q",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1s1v58pqGaVha9g_evNX4UEMchzteO7CyLNp87tcKJ1Q/edit?usp=drivesdk",
+          "cachedResultName": "Docs Summarise Data"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1s1v58pqGaVha9g_evNX4UEMchzteO7CyLNp87tcKJ1Q/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "value": {
+            "Name": "={{ $('Google Drive ').item.json.lastModifyingUser.displayName }}",
+            "Email ": "={{ $('Google Drive ').item.json.lastModifyingUser.emailAddress }}",
+            "Summarise Conetent data ": "={{ $json.message.content }}"
+          },
+          "schema": [
+            {
+              "id": "Email ",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Email ",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "Name",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summarise Conetent data ",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Summarise Conetent data ",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": []
+        },
+        "options": {}
+      },
+      "id": "3ce3f257-533c-459b-b317-a44190a4256a",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        416,
+        512
+      ],
+      "typeVersion": 4.5
+    },
+    {
+      "parameters": {
+        "content": "## Get Latest File\n",
+        "height": 260,
+        "color": 5
+      },
+      "id": "e8d9e2ff-e583-4bcf-9261-b6a82b0608ef",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -944,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "serviceAccount",
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1H8Xe2uIO0sI-QdxFsDH0Yg_w9RaPOoD_",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1H8Xe2uIO0sI-QdxFsDH0Yg_w9RaPOoD_",
+          "cachedResultName": "yashdata"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "967f07d9-c396-4d56-8d39-85d98205477f",
+      "name": "Google Drive ",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "position": [
+        -864,
+        240
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "notes": "Received the doc"
+    },
+    {
+      "parameters": {
+        "content": "## Get Document Content\n",
+        "height": 260,
+        "width": 260,
+        "color": 5
+      },
+      "id": "803f6dcb-42de-40b7-8c73-f37733bed338",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        368
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## AI Summarization\n",
+        "height": 380,
+        "width": 440,
+        "color": 5
+      },
+      "id": "17a27e9c-a949-4c93-9f9f-ec462da3f160",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        176
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Store Summary in Sheet\n",
+        "height": 280,
+        "width": 300,
+        "color": 5
+      },
+      "id": "d8036eab-e341-4012-8f29-6c52b91678cf",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        304,
+        400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarise the below content\n {{ $json.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7e0c256d-806e-418c-b178-7008c0b9c516",
+      "name": "Generate Summary AI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        -160,
+        256
+      ],
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "content": "# Google Doc Summarizer to Google Sheets\n",
+        "height": 80,
+        "width": 800,
+        "color": 5
+      },
+      "id": "24148919-92b9-46e8-b810-83edcbec7c66",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        -32
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Wikipedia": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate Summary AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "Generate Summary AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Docs": {
+      "main": [
+        [
+          {
+            "node": "Generate Summary AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive ": {
+      "main": [
+        [
+          {
+            "node": "Google Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Summary AI": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9f34456e-914e-4c20-bd28-77c36e6d9ea0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8fc5b3378594a2acdd86cea3d344e4daab4875f48262c9cc47e3a54e3b464220"
+  },
+  "id": "H5xo8JQSnkKlRADl",
+  "tags": [
+    {
+      "updatedAt": "2025-11-30T06:46:08.549Z",
+      "createdAt": "2025-11-30T06:46:08.549Z",
+      "id": "6iLB33WeG2YbfTJ3",
+      "name": "DevOps"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.615Z",
+      "createdAt": "2025-11-30T06:46:08.615Z",
+      "id": "6op0zL77FeuaPqWj",
+      "name": "Support"
+    },
+    {
+      "updatedAt": "2025-11-30T06:22:17.231Z",
+      "createdAt": "2025-11-30T06:22:17.231Z",
+      "id": "IDs1YkEyqRuTzWT3",
+      "name": "OpenAI"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.471Z",
+      "createdAt": "2025-11-30T06:46:08.471Z",
+      "id": "Igi35IvFAUpecKCl",
+      "name": "IT Ops"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.442Z",
+      "createdAt": "2025-11-30T06:46:08.442Z",
+      "id": "IhvL3iSTIjSMQjuQ",
+      "name": "Building blocks"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.502Z",
+      "createdAt": "2025-11-30T06:46:08.502Z",
+      "id": "MQFOUh5oGInbQ8Wk",
+      "name": "Finance"
+    },
+    {
+      "updatedAt": "2025-11-29T09:45:42.981Z",
+      "createdAt": "2025-11-29T09:45:42.981Z",
+      "id": "OyDyfk4weQYK0qRP",
+      "name": "AI"
+    },
+    {
+      "updatedAt": "2025-11-30T06:22:17.259Z",
+      "createdAt": "2025-11-30T06:22:17.259Z",
+      "id": "W3TYCEapiw9idhxP",
+      "name": "Google Drive"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.595Z",
+      "createdAt": "2025-11-30T06:46:08.595Z",
+      "id": "hcHI7CXwHQX3oEGx",
+      "name": "Marketing"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.530Z",
+      "createdAt": "2025-11-30T06:46:08.530Z",
+      "id": "mYSfABPli1VS9HRW",
+      "name": "Product"
+    },
+    {
+      "updatedAt": "2025-11-30T06:15:47.747Z",
+      "createdAt": "2025-11-30T06:15:47.747Z",
+      "id": "pgdZxQku6cXH3yWC",
+      "name": "marketing"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.569Z",
+      "createdAt": "2025-11-30T06:46:08.569Z",
+      "id": "wLQJJ0Kj2fLawvaj",
+      "name": "HR"
+    },
+    {
+      "updatedAt": "2025-11-30T06:46:08.634Z",
+      "createdAt": "2025-11-30T06:46:08.634Z",
+      "id": "yNq5jRRGyXUpeeiw",
+      "name": "Project Management"
+    }
+  ]
+}
